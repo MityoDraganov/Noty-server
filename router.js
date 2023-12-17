@@ -16,14 +16,16 @@ Router.get("/", (req, res) =>{
     res.send("REST service operational...")
 })
 
-
+//users
 Router.post("/users/register", userControler.userCreationPost)
 Router.post("/users/login", userControler.userLogin)
 Router.get("/users/profile", authMiddlewear.tokenVerifier, userControler.getUserInfo)
 
-
-
-Router.post("/notes/create", authMiddlewear.tokenAtacher, notesControler.noteCreate)
+//notes
+Router.get("/notes", notesControler.getNotes)
+Router.post("/notes/create", authMiddlewear.tokenAtacher, notesControler.createNote)
+Router.post("/notes/delete", notesControler.deleteNote)
+Router.delete("/notes/:id", notesControler.deleteNote)
 
 
 module.exports = Router;

@@ -8,8 +8,24 @@ const { findNoteById } = require("../services/noteServices");
 
 
 
+async function getNotes(req, res) {
 
-async function noteCreate(req, res) {
+	try {
+		const notes = await noteModel.find()
+
+
+
+		res.send(
+			JSON.stringify({
+				notes
+			})
+		);
+	} catch (err) {
+		res.status(400).send(err.message);
+	}
+}
+
+async function createNote(req, res) {
 	try {
 		const userTokenCredentials = req.userTokenCredentials
 
@@ -22,7 +38,7 @@ async function noteCreate(req, res) {
 			description
 		});
 
-		if(userTokenCredentials){
+		if (userTokenCredentials) {
 			const user = findUserById(userTokenCredentials._id)
 			user.notes.push(note._id)
 			await user.save()
@@ -41,21 +57,25 @@ async function noteCreate(req, res) {
 	}
 }
 
-async function noteEdit(req, res) {
+async function editNote(req, res) {
 	try {
 		const userTokenCredentials = req.userTokenCredentials
+
+		const noteId = req.params.id
 
 		const data = req.body;
 		const { title, description } = data
 
 
-		const label = await labelModel.create({
-			toSend: labelData,
-		});
+		const note = await findNoteById(noteId)
 
-		if(userTokenCredentials){
+		note.title = title;
+		note.description = description;
+		await note.save()
+
+		if (userTokenCredentials) {
 			const user = await userModel.findById(userTokenCredentials._id)
-			user.purchaseHistory.push(label._id)
+			user.notes.push(note._id)
 			await user.save()
 		}
 
@@ -64,7 +84,7 @@ async function noteEdit(req, res) {
 		res.send(
 			JSON.stringify({
 				Message:
-					"Пратката Ви очаква удобрение и скоро ще се погрижим за нея!",
+					"Note edited!",
 			})
 		);
 	} catch (err) {
@@ -72,22 +92,20 @@ async function noteEdit(req, res) {
 	}
 }
 
-async function noteDelete(req, res) {
+async function deleteNote(req, res) {
 	try {
 		const userTokenCredentials = req.userTokenCredentials
 
-		const data = req.body;
-		const { title, description } = data
+		const noteId = req.params.id
 
 
-		const label = await labelModel.create({
-			toSend: labelData,
-		});
+		const note = await noteModel.findByIdAndDelete(noteId)
 
-		if(userTokenCredentials){
+		if (userTokenCredentials) {
 			const user = await userModel.findById(userTokenCredentials._id)
-			user.purchaseHistory.push(label._id)
-			await user.save()
+			
+
+			//verify user here
 		}
 
 
@@ -95,7 +113,7 @@ async function noteDelete(req, res) {
 		res.send(
 			JSON.stringify({
 				Message:
-					"Пратката Ви очаква удобрение и скоро ще се погрижим за нея!",
+					"Note succesfully deleted!",
 			})
 		);
 	} catch (err) {
@@ -104,4 +122,4 @@ async function noteDelete(req, res) {
 }
 
 
-module.exports = { noteCreate };
+module.exports = { createNote, getNotes, deleteNote, editNote };
