@@ -1,4 +1,4 @@
-const noteModel = require("../models/note")
+const noteGroupModel = require("../models/noteGroup")
 
 const userModel = require("../models/user")
 
@@ -8,10 +8,10 @@ const { findUserById } = require("../services/userServices");
 
 
 
-async function getNotes(req, res) {
+async function getGroups(req, res) {
 
 	try {
-		const notes = await noteModel.find()
+		const notes = await noteGroupModel.find()
 
 
 
@@ -23,16 +23,15 @@ async function getNotes(req, res) {
 	}
 }
 
-async function createNote(req, res) {
+async function createGroup(req, res) {
 	try {
-		const noteGroupId = req.params.noteGroupId
 		const userTokenCredentials = req.userTokenCredentials
 
 		const data = req.body;
 		const { title, description } = data
 
 
-		const note = await noteModel.create({
+		const note = await noteGroupModel.create({
 			title,
 			description
 		});
@@ -43,7 +42,7 @@ async function createNote(req, res) {
 			await user.save()
 		}
 
-		const notes = await noteModel.find()
+		const notes = await noteGroupModel.find()
 
 
 		res.send(
@@ -54,17 +53,17 @@ async function createNote(req, res) {
 	}
 }
 
-async function editNote(req, res) {
+async function addNoteToGroup(req, res) {
 	try {
 		//const userTokenCredentials = req.userTokenCredentials
 
-		const noteId = req.params.id
+		const groupId = req.params.id
 
 		const data = req.body;
 		const { title, description } = data
 
 
-		const note = await noteModel.findById(noteId)
+		const note = await noteGroupModel.findById(noteId)
 
 		note.title = title;
 		note.description = description;
@@ -76,7 +75,7 @@ async function editNote(req, res) {
 		// 	await user.save()
 		// }
 
-		const notes = await noteModel.find()
+		const notes = await noteGroupModel.find()
 
 
 
@@ -88,14 +87,14 @@ async function editNote(req, res) {
 	}
 }
 
-async function deleteNote(req, res) {
+async function deleteNoteFromGroup(req, res) {
 	try {
 		const userTokenCredentials = req.userTokenCredentials
 
 		const noteId = req.params.id
 
 
-		const note = await noteModel.findByIdAndDelete(noteId)
+		const note = await noteGroupModel.findByIdAndDelete(noteId)
 
 		if (userTokenCredentials) {
 			const user = await userModel.findById(userTokenCredentials._id)
@@ -104,7 +103,7 @@ async function deleteNote(req, res) {
 			//verify user here
 		}
 
-		const notes = await noteModel.find()
+		const notes = await noteGroupModel.find()
 
 
 		res.send(
@@ -116,4 +115,4 @@ async function deleteNote(req, res) {
 }
 
 
-module.exports = { createNote, getNotes, deleteNote, editNote };
+module.exports = { createGroup, addNoteToGroup, deleteNoteFromGroup, getGroups };

@@ -10,28 +10,22 @@ async function userCreationPost(req, res) {
   try {
     const data = req.body;
 
-    const { password, rePassword, firstName, lastName, email, phoneNumber } = data;
+    const { password, rePassword, username, email } = data;
 
-    const body = {
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-    };
+
 
     const existingUser = await userModel.findOne({ email: email });
 
     if (existingUser) {
-      throw new Error("Вече има създаден потребител с тази електронна поща!");
+      throw new Error("User already registerd!");
     }
 
 
     const validation = dataValidation.userCreationValidation(
       password,
       rePassword,
-      body,
-      firstName,
-      lastName
+      username,
+      email
     );
     if (validation !== null) {
       throw new Error(validation);
@@ -39,7 +33,7 @@ async function userCreationPost(req, res) {
 
     const hash = await bcrypt.hash(password, 10);
 
-    const user = await userModel.create({ ...body, password: hash });
+    const user = await userModel.create({ ...data, password: hash });
 
     const token = await jwtPromises.sign(
       { email: email, _id: user._id },
