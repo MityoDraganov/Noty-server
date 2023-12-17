@@ -16,9 +16,7 @@ async function getNotes(req, res) {
 
 
 		res.send(
-			JSON.stringify({
-				notes
-			})
+			JSON.stringify(notes)
 		);
 	} catch (err) {
 		res.status(400).send(err.message);

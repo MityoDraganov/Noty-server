@@ -24,7 +24,7 @@ Router.get("/users/profile", authMiddlewear.tokenVerifier, userControler.getUser
 //notes
 Router.get("/notes", notesControler.getNotes)
 Router.post("/notes/create", authMiddlewear.tokenAtacher, notesControler.createNote)
-Router.post("/notes/delete", notesControler.deleteNote)
+Router.post("/notes/edit/:id", notesControler.editNote)
 Router.delete("/notes/:id", notesControler.deleteNote)
 
 
