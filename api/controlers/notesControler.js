@@ -1,6 +1,7 @@
+const noteGroupModel = require("../models/noteGroup")
 const noteModel = require("../models/note")
-
 const userModel = require("../models/user")
+
 
 //SERVICES
 const { findUserById } = require("../services/userServices");
@@ -11,7 +12,15 @@ const { findUserById } = require("../services/userServices");
 async function getNotes(req, res) {
 
 	try {
-		const notes = await noteModel.find()
+
+		const noteGroupId = req.params.noteGroupId
+
+		const noteGroup = await noteGroupModel.findById(noteGroupId).populate("notes")
+		if(!noteGroup){
+			throw new Error("Note group with such id not found!")
+		}
+
+		const notes = noteGroup.notes
 
 
 
@@ -31,11 +40,20 @@ async function createNote(req, res) {
 		const data = req.body;
 		const { title, description } = data
 
+		const noteGroup = await noteGroupModel.findById(noteGroupId).populate("notes")
+
+		if(!noteGroup){
+			throw new Error("Note group with such id not found!")
+		}
+
 
 		const note = await noteModel.create({
 			title,
 			description
 		});
+
+		noteGroup.notes.push(note)
+		await noteGroup.save()
 
 		if (userTokenCredentials) {
 			const user = findUserById(userTokenCredentials._id)
@@ -43,7 +61,7 @@ async function createNote(req, res) {
 			await user.save()
 		}
 
-		const notes = await noteModel.find()
+		const notes = noteGroup.notes
 
 
 		res.send(
@@ -76,12 +94,12 @@ async function editNote(req, res) {
 		// 	await user.save()
 		// }
 
-		const notes = await noteModel.find()
+
 
 
 
 		res.send(
-			JSON.stringify(notes)
+			JSON.stringify(note)
 		);
 	} catch (err) {
 		res.status(400).send(err.message);
@@ -104,11 +122,11 @@ async function deleteNote(req, res) {
 			//verify user here
 		}
 
-		const notes = await noteModel.find()
+
 
 
 		res.send(
-			JSON.stringify(notes)
+			JSON.stringify(note)
 		);
 	} catch (err) {
 		res.status(400).send(err.message);
