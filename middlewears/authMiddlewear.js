@@ -18,6 +18,7 @@ const tokenVerifier = (req, res, next) => {
   });
 };
 
+/*
 const tokenAtacher = (req, res, next) => {
   const token = req.headers["authorization-token"];
 
@@ -32,8 +33,8 @@ const tokenAtacher = (req, res, next) => {
   } else {
     next()
   }
-}
+} */
 
 
 
-module.exports = { tokenVerifier, tokenAtacher };
+module.exports = { tokenVerifier };

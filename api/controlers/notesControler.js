@@ -55,11 +55,7 @@ async function createNote(req, res) {
 		noteGroup.notes.push(note)
 		await noteGroup.save()
 
-		if (userTokenCredentials) {
-			const user = findUserById(userTokenCredentials._id)
-			user.notes.push(note._id)
-			await user.save()
-		}
+
 
 		const notes = noteGroup.notes
 

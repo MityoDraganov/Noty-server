@@ -9,12 +9,20 @@ const noteGroupSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'note'
     }],
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'userModel',
+        required: true
+    },
     permitedUsers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'userModel'
     }],
     visibility: {
-        enum: ["private", "public"]
+        type: String,
+        enum: ["private", "public"],
+        default: "private",
+        required: true
     }
 });
 

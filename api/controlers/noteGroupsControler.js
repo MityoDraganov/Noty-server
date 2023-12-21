@@ -9,99 +9,90 @@ const { findUserById } = require("../services/userServices");
 
 
 async function getGroups(req, res) {
+    try {
+        const userCredentials = req.userTokenCredentials;
 
-	try {
-		const notes = await noteGroupModel.find()
+        // get the groups that are visible to the user
+        const notes = await noteGroupModel.find({
+            permitedUsers: userCredentials._id
+        });
 
-
-
-		res.send(
-			JSON.stringify(notes)
-		);
-	} catch (err) {
-		res.status(400).send(err.message);
-	}
+        res.send(JSON.stringify(notes));
+    } catch (err) {
+        res.status(400).send(err.message);
+    }
 }
 
 async function createGroup(req, res) {
 	try {
-		const userTokenCredentials = req.userTokenCredentials
+		const userCredentials = req.userTokenCredentials
 
 		const data = req.body;
 		const { title, description } = data
 
 
-		const note = await noteGroupModel.create({
+		const noteGroup = await noteGroupModel.create({
 			title,
-			description
+			description,
+			owner: userCredentials._id
 		});
+		noteGroup.permitedUsers.push(userCredentials._id)
+		await noteGroup.save()
 
-		if (userTokenCredentials) {
-			const user = findUserById(userTokenCredentials._id)
-			user.notes.push(note._id)
-			await user.save()
+
+		const notes = await noteGroupModel.find({
+            permitedUsers: userCredentials._id
+        });
+
+
+		res.send(
+			JSON.stringify(notes)
+		);
+	} catch (err) {
+		res.status(400).send(err.message);
+	}
+}
+
+async function addUserToGroup(req, res) {
+	try {
+		const userTokenCredentials = req.userTokenCredentials
+		const groupId = req.params.id
+		const { userEmail } = req.body
+
+		const noteGroup = await noteGroupModel.findById(groupId)
+
+		if(noteGroup.owner !== userTokenCredentials._id){
+			throw new Error("Action not authorized - you are not the owner of the group!")
 		}
 
-		const notes = await noteGroupModel.find()
+		const user = await userModel.findOne({
+			email: userEmail
+		})
 
+		if(!user){
+			throw new Error("User not found!")
+		}
+
+		noteGroup.permitedUsers.push(user._id)
+		await noteGroup.save()
 
 		res.send(
-			JSON.stringify(notes)
+			JSON.stringify(noteGroup)
 		);
 	} catch (err) {
 		res.status(400).send(err.message);
 	}
 }
 
-async function addNoteToGroup(req, res) {
-	try {
-		//const userTokenCredentials = req.userTokenCredentials
-
-		const groupId = req.params.id
-
-		const data = req.body;
-		const { title, description } = data
-
-
-		const note = await noteGroupModel.findById(noteId)
-
-		note.title = title;
-		note.description = description;
-		await note.save()
-
-		// if (userTokenCredentials) {
-		// 	const user = await userModel.findById(userTokenCredentials._id)
-		// 	user.notes.push(note._id)
-		// 	await user.save()
-		// }
-
-		const notes = await noteGroupModel.find()
-
-
-
-		res.send(
-			JSON.stringify(notes)
-		);
-	} catch (err) {
-		res.status(400).send(err.message);
-	}
-}
-
-async function deleteNoteFromGroup(req, res) {
+async function deleteUserFromGroup(req, res) {
 	try {
 		const userTokenCredentials = req.userTokenCredentials
 
 		const noteId = req.params.id
 
 
-		const note = await noteGroupModel.findByIdAndDelete(noteId)
+		const noteGroup = await noteGroupModel.findByIdAndDelete(noteId)
 
-		if (userTokenCredentials) {
-			const user = await userModel.findById(userTokenCredentials._id)
-			
-
-			//verify user here
-		}
 
 		const notes = await noteGroupModel.find()
 
@@ -115,4 +106,4 @@ async function deleteNoteFromGroup(req, res) {
 }
 
 
-module.exports = { createGroup, addNoteToGroup, deleteNoteFromGroup, getGroups };
+module.exports = { createGroup, addUserToGroup, deleteUserFromGroup, getGroups };

@@ -14,10 +14,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    noteGroups: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'noteGroup'
-    }]
 })
 
 const userModel = mongoose.model("userModel", userSchema)
