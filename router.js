@@ -30,6 +30,10 @@ Router.delete("/notes/:id", authMiddlewear.tokenVerifier, notesControler.deleteN
 //note groups
 Router.get("/noteGroups", authMiddlewear.tokenVerifier, noteGroupsControler.getGroups)
 Router.post("/noteGroups/create", authMiddlewear.tokenVerifier, noteGroupsControler.createGroup)
+Router.post("/noteGroups/edit/:noteGroupId", authMiddlewear.tokenVerifier, noteGroupsControler.editGroup)
+
+Router.post("/noteGroups/addUser/:noteGroupId", authMiddlewear.tokenVerifier, noteGroupsControler.addUserToGroup)
+Router.post("/noteGroups/deleteUser/:noteGroupId", authMiddlewear.tokenVerifier, noteGroupsControler.deleteUserFromGroup)
 
 
 module.exports = Router;

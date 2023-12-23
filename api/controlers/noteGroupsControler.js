@@ -53,6 +53,30 @@ async function createGroup(req, res) {
 	}
 }
 
+async function editGroup(req, res) {
+	try {
+		const userTokenCredentials = req.userTokenCredentials
+		const groupId = req.params.id
+		const { title, visibility } = req.body
+
+		const noteGroup = await noteGroupModel.findById(groupId)
+
+		if(noteGroup.owner !== userTokenCredentials._id){
+			throw new Error("Action not authorized - you are not the owner of the group!")
+		}
+
+		noteGroup.title = title;
+		noteGroup.visibility = visibility;
+		await noteGroup.save()
+
+		res.send(
+			JSON.stringify(noteGroup)
+		);
+	} catch (err) {
+		res.status(400).send(err.message);
+	}
+}
+
 async function addUserToGroup(req, res) {
 	try {
 		const userTokenCredentials = req.userTokenCredentials
@@ -106,4 +130,4 @@ async function deleteUserFromGroup(req, res) {
 }
 
 
-module.exports = { createGroup, addUserToGroup, deleteUserFromGroup, getGroups };
+module.exports = { createGroup, addUserToGroup, deleteUserFromGroup, getGroups, editGroup };
