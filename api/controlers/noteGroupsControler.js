@@ -112,13 +112,17 @@ async function deleteUserFromGroup(req, res) {
 	try {
 		const userTokenCredentials = req.userTokenCredentials
 
+		const { userEmail } = req.body
 		const noteId = req.params.id
 
 
 		const noteGroup = await noteGroupModel.findByIdAndDelete(noteId)
 
+		if(noteGroup.owner !== userTokenCredentials._id){
+			throw new Error("Action not authorized - you are not the owner of the group!")
+		}
 
-		const notes = await noteGroupModel.find()
+
 
 
 		res.send(
@@ -129,5 +133,26 @@ async function deleteUserFromGroup(req, res) {
 	}
 }
 
+async function getPermitedUsers(req, res) {
+		try {
+		const userTokenCredentials = req.userTokenCredentials
+		const groupId = req.params.id
 
-module.exports = { createGroup, addUserToGroup, deleteUserFromGroup, getGroups, editGroup };
+		const noteGroup = await noteGroupModel.findById(groupId).populate("permitedUsers")
+
+		if(noteGroup.owner !== userTokenCredentials._id){
+			throw new Error("Action not authorized - you are not the owner of the group!")
+		}
+
+
+
+		res.send(
+			JSON.stringify(noteGroup.permitedUsers)
+		);
+	} catch (err) {
+		res.status(400).send(err.message);
+	}
+}
+
+
+module.exports = { createGroup, addUserToGroup, deleteUserFromGroup, getGroups, editGroup, getPermitedUsers };

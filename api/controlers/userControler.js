@@ -8,9 +8,7 @@ const dataValidation = require("../services/dataValidation");
 
 async function userCreationPost(req, res) {
     try {
-        const data = req.body;
-
-        const { password, rePassword, username, email } = data;
+        const { password, rePassword, username, email } = req.body;
 
 
 
@@ -52,8 +50,7 @@ async function userCreationPost(req, res) {
 
 async function userLogin(req, res) {
     try {
-        console.log('user login request catched');
-        const { email, password } = { ...req.body };
+        const { email, password } = req.body ;
 
         const user = await userModel.findOne({ email: email });
 
@@ -99,4 +96,29 @@ async function getUserInfo(req, res) {
     }))
 }
 
-module.exports = { userCreationPost, userLogin, getUserInfo };
+async function searchUser(req, res) {
+    try {
+        const { username } = req.body;
+
+        if (!username) {
+            throw new Error("Username is required for search");
+        }
+
+        // Use a regular expression to perform a case-insensitive partial match on usernames
+        const users = await userModel.find({ username: { $regex: username, $options: 'i' } });
+
+        res.send(JSON.stringify(
+            users.map(user => ({
+                _id: user._id,
+                username: user.username,
+                email: user.email,
+                // Add other relevant user data as needed
+            })),
+        ));
+    } catch (e) {
+        res.status(400).send({ error: "Bad Request: " + e.message });
+    }
+}
+
+
+module.exports = { userCreationPost, userLogin, getUserInfo, searchUser };

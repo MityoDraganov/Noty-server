@@ -19,6 +19,7 @@ Router.get("/", (req, res) =>{
 //users
 Router.post("/users/register", userControler.userCreationPost)
 Router.post("/users/login", userControler.userLogin)
+Router.post("/users/search", userControler.searchUser)
 //Router.get("/users/profile", authMiddlewear.tokenVerifier, userControler.getUserInfo)
 
 //notes
