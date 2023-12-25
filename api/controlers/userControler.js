@@ -5,6 +5,7 @@ const { secret } = require("../config");
 const userModel = require("../models/user");
 
 const dataValidation = require("../services/dataValidation");
+const notificationModel = require("../models/notification");
 
 async function userCreationPost(req, res) {
     try {
@@ -31,7 +32,7 @@ async function userCreationPost(req, res) {
 
         const hash = await bcrypt.hash(password, 10);
 
-        const user = await userModel.create({ ...data, password: hash });
+        const user = await userModel.create({ ...req.body, password: hash });
 
         const token = await jwtPromises.sign(
             { email: email, _id: user._id },
@@ -87,12 +88,16 @@ async function userLogin(req, res) {
 async function getUserInfo(req, res) {
     const userTokenCredentials = req.userTokenCredentials
 
-    const user = await userModel.findById(userTokenCredentials._id)
+    const user = await userModel.findById(userTokenCredentials._id).populate("notifications")
+
+    const notifications = await notificationModel.find({
+        addressedTo: user._id
+    }).populate()
 
     res.send(JSON.stringify({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        purchaseHistory: user.purchaseHistory
+        username: user.username,
+        email: user.email,
+        notifications: notifications
     }))
 }
 

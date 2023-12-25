@@ -54,28 +54,35 @@ async function createGroup(req, res) {
 }
 
 async function editGroup(req, res) {
-	try {
-		const userTokenCredentials = req.userTokenCredentials
-		const groupId = req.params.id
-		const { title, visibility } = req.body
+    try {
+        const userTokenCredentials = req.userTokenCredentials;
+        console.log(userTokenCredentials);
+        const groupId = req.params.noteGroupId;
+        const { title, visibility } = req.body;
 
-		const noteGroup = await noteGroupModel.findById(groupId)
+        const noteGroup = await noteGroupModel.findById(groupId);
+        if (!noteGroup) {
+            throw new Error("Note group not found!");
+        }
+        console.log(noteGroup);
 
-		if(noteGroup.owner !== userTokenCredentials._id){
-			throw new Error("Action not authorized - you are not the owner of the group!")
-		}
+        // Convert the owner ID to a string for comparison
+        const ownerIdString = userTokenCredentials._id.toString();
 
-		noteGroup.title = title;
-		noteGroup.visibility = visibility;
-		await noteGroup.save()
+        if (noteGroup.owner.toString() !== ownerIdString) {
+            throw new Error("Action not authorized - you are not the owner of the group!");
+        }
 
-		res.send(
-			JSON.stringify(noteGroup)
-		);
-	} catch (err) {
-		res.status(400).send(err.message);
-	}
+        noteGroup.title = title;
+        noteGroup.visibility = visibility;
+        await noteGroup.save();
+
+        res.send(JSON.stringify(noteGroup));
+    } catch (err) {
+        res.status(400).send(err.message);
+    }
 }
+
 
 async function addUserToGroup(req, res) {
 	try {
@@ -116,11 +123,11 @@ async function deleteUserFromGroup(req, res) {
 		const noteId = req.params.id
 
 
-		const noteGroup = await noteGroupModel.findByIdAndDelete(noteId)
+		//const noteGroup = await noteGroupModel.findByIdAndDelete(noteId)
 
-		if(noteGroup.owner !== userTokenCredentials._id){
-			throw new Error("Action not authorized - you are not the owner of the group!")
-		}
+		//if(noteGroup.owner !== userTokenCredentials._id){
+		//	throw new Error("Action not authorized - you are not the owner of the group!")
+		//}
 
 
 

@@ -7,6 +7,7 @@ const Router = express.Router();
 const userControler = require("./api/controlers/userControler")
 const notesControler = require('./api/controlers/notesControler');
 const noteGroupsControler = require("./api/controlers/noteGroupsControler")
+const notificationsControler = require("./api/controlers/notificationsControler")
 
 //MIDDLEWEARS
 const authMiddlewear = require("./middlewears/authMiddlewear");
@@ -20,7 +21,12 @@ Router.get("/", (req, res) =>{
 Router.post("/users/register", userControler.userCreationPost)
 Router.post("/users/login", userControler.userLogin)
 Router.post("/users/search", userControler.searchUser)
-//Router.get("/users/profile", authMiddlewear.tokenVerifier, userControler.getUserInfo)
+Router.get("/users/profile", authMiddlewear.tokenVerifier, userControler.getUserInfo)
+
+//notifications
+Router.post("/notifications/invite/create", authMiddlewear.tokenVerifier, notificationsControler.sendProjectIInvite)
+Router.post("/notifications/invite/accept", authMiddlewear.tokenVerifier, notificationsControler.acceptProjectInvite)
+Router.post("/notifications/invite/reject", authMiddlewear.tokenVerifier, notificationsControler.rejectProjectInvite)
 
 //notes
 Router.get("/notes/:noteGroupId", authMiddlewear.tokenVerifier, notesControler.getNotes)
