@@ -20,11 +20,11 @@ Router.get("/", (req, res) =>{
 //users
 Router.post("/users/register", userControler.userCreationPost)
 Router.post("/users/login", userControler.userLogin)
-Router.post("/users/search", userControler.searchUser)
+Router.post("/users/search", authMiddlewear.tokenVerifier, userControler.searchUser)
 Router.get("/users/profile", authMiddlewear.tokenVerifier, userControler.getUserInfo)
 
 //notifications
-Router.post("/notifications/invite/create", authMiddlewear.tokenVerifier, notificationsControler.sendProjectIInvite)
+Router.post("/notifications/invite/create", authMiddlewear.tokenVerifier, notificationsControler.sendProjectInvite)
 Router.post("/notifications/invite/accept", authMiddlewear.tokenVerifier, notificationsControler.acceptProjectInvite)
 Router.post("/notifications/invite/reject", authMiddlewear.tokenVerifier, notificationsControler.rejectProjectInvite)
 

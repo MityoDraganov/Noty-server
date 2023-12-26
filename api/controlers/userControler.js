@@ -51,7 +51,7 @@ async function userCreationPost(req, res) {
 
 async function userLogin(req, res) {
     try {
-        const { email, password } = req.body ;
+        const { email, password } = req.body;
 
         const user = await userModel.findOne({ email: email });
 
@@ -88,7 +88,7 @@ async function userLogin(req, res) {
 async function getUserInfo(req, res) {
     const userTokenCredentials = req.userTokenCredentials
 
-    const user = await userModel.findById(userTokenCredentials._id).populate("notifications")
+    const user = await userModel.findById(userTokenCredentials._id)
 
     const notifications = await notificationModel.find({
         addressedTo: user._id
@@ -103,23 +103,24 @@ async function getUserInfo(req, res) {
 
 async function searchUser(req, res) {
     try {
+        const ownerCredentials = req.userTokenCredentials;
         const { username } = req.body;
 
         if (!username) {
             throw new Error("Username is required for search");
         }
 
-        // Use a regular expression to perform a case-insensitive partial match on usernames
         const users = await userModel.find({ username: { $regex: username, $options: 'i' } });
 
-        res.send(JSON.stringify(
-            users.map(user => ({
+        const filteredUsers = users
+            .filter(user => user._id.toString() !== ownerCredentials._id.toString())
+            .map(user => ({
                 _id: user._id,
                 username: user.username,
                 email: user.email,
-                // Add other relevant user data as needed
-            })),
-        ));
+            }));
+
+        res.send(JSON.stringify(filteredUsers));
     } catch (e) {
         res.status(400).send({ error: "Bad Request: " + e.message });
     }

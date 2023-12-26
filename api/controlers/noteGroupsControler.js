@@ -15,7 +15,7 @@ async function getGroups(req, res) {
         // get the groups that are visible to the user
         const notes = await noteGroupModel.find({
             permitedUsers: userCredentials._id
-        });
+        }).populate("permitedUsers");
 
         res.send(JSON.stringify(notes));
     } catch (err) {

@@ -3,26 +3,34 @@ const userModel = require("../models/user")
 const noteGroupModel = require("../models/noteGroup")
 
 
-async function sendProjectIInvite(req, res) {
+async function sendProjectInvite(req, res) {
     try {
-        const addresserCredentials = req.userTokenCredentials
-        const { userId, projectId } = req.body
+        const addresserCredentials = req.userTokenCredentials;
+        const { userId, projectId } = req.body;
 
+        // Check if there is already a notification for the same project and user
+        const existingNotification = await notificationModel.findOne({
+            type: "invite",
+            project: projectId,
+            sentBy: addresserCredentials._id,
+            addressedTo: userId
+        });
+
+        if (existingNotification) {
+            throw new Error("Notification for the same project and user already exists");
+        }
+
+        // If no existing notification, create a new one
         const notification = await notificationModel.create({
             type: "invite",
             project: projectId,
             sentBy: addresserCredentials._id,
             addressedTo: userId
-        })
+        });
 
-
-        res.send(
-            JSON.stringify(notification)
-        );
-
-    }
-    catch (err) {
-        res.status(400).send(err.message);
+        res.send(JSON.stringify(notification));
+    } catch (err) {
+        res.status(400).send({ Message: err.message });
     }
 }
 
@@ -51,7 +59,7 @@ async function acceptProjectInvite(req, res) {
         await noteGroup.save()
         
     } catch (err) {
-        res.status(400).send(err.message);
+        res.status(400).send({ Message: err.message });
     }
 
 }
@@ -81,8 +89,8 @@ async function rejectProjectInvite(req, res) {
         res.send(JSON.stringify(result))
         
     } catch (err) {
-        res.status(400).send(err.message);
+        res.status(400).send({ Message: err.message });
     }
 }
 
-module.exports = { sendProjectIInvite, acceptProjectInvite, rejectProjectInvite }
+module.exports = { sendProjectInvite, acceptProjectInvite, rejectProjectInvite }
