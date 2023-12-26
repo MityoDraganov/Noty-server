@@ -18,12 +18,12 @@ const noteGroupSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'userModel'
     }],
-    visibility: {
-        type: String,
-        enum: ["private", "public"],
-        default: "private",
-        required: true
-    }
+    // visibility: {
+    //     type: String,
+    //     enum: ["private", "public"],
+    //     default: "private",
+    //     required: true
+    // }
 });
 
 const noteModel = mongoose.model("noteGroup", noteGroupSchema);

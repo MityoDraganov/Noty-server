@@ -28,12 +28,11 @@ async function createGroup(req, res) {
 		const userCredentials = req.userTokenCredentials
 
 		const data = req.body;
-		const { title, description } = data
+		const { title } = data
 
 
 		const noteGroup = await noteGroupModel.create({
 			title,
-			description,
 			owner: userCredentials._id
 		});
 		noteGroup.permitedUsers.push(userCredentials._id)
@@ -58,7 +57,7 @@ async function editGroup(req, res) {
 		const userTokenCredentials = req.userTokenCredentials;
 		console.log(userTokenCredentials);
 		const groupId = req.params.noteGroupId;
-		const { title, visibility } = req.body;
+		const { title } = req.body;
 
 		const noteGroup = await noteGroupModel.findById(groupId);
 		if (!noteGroup) {
@@ -74,7 +73,6 @@ async function editGroup(req, res) {
 		}
 
 		noteGroup.title = title;
-		noteGroup.visibility = visibility;
 		await noteGroup.save();
 
 		res.send(JSON.stringify(noteGroup));
