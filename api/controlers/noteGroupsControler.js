@@ -9,18 +9,18 @@ const { findUserById } = require("../services/userServices");
 
 
 async function getGroups(req, res) {
-    try {
-        const userCredentials = req.userTokenCredentials;
+	try {
+		const userCredentials = req.userTokenCredentials;
 
-        // get the groups that are visible to the user
-        const notes = await noteGroupModel.find({
-            permitedUsers: userCredentials._id
-        }).populate("permitedUsers");
+		// get the groups that are visible to the user
+		const notes = await noteGroupModel.find({
+			permitedUsers: userCredentials._id
+		}).populate("permitedUsers");
 
-        res.send(JSON.stringify(notes));
-    } catch (err) {
-        res.status(400).send(err.message);
-    }
+		res.send(JSON.stringify(notes));
+	} catch (err) {
+		res.status(400).send(err.message);
+	}
 }
 
 async function createGroup(req, res) {
@@ -41,8 +41,8 @@ async function createGroup(req, res) {
 
 
 		const notes = await noteGroupModel.find({
-            permitedUsers: userCredentials._id
-        });
+			permitedUsers: userCredentials._id
+		});
 
 
 		res.send(
@@ -54,100 +54,151 @@ async function createGroup(req, res) {
 }
 
 async function editGroup(req, res) {
+	try {
+		const userTokenCredentials = req.userTokenCredentials;
+		console.log(userTokenCredentials);
+		const groupId = req.params.noteGroupId;
+		const { title, visibility } = req.body;
+
+		const noteGroup = await noteGroupModel.findById(groupId);
+		if (!noteGroup) {
+			throw new Error("Note group not found!");
+		}
+		console.log(noteGroup);
+
+		// Convert the owner ID to a string for comparison
+		const ownerIdString = userTokenCredentials._id.toString();
+
+		if (noteGroup.owner.toString() !== ownerIdString) {
+			throw new Error("Action not authorized - you are not the owner of the group!");
+		}
+
+		noteGroup.title = title;
+		noteGroup.visibility = visibility;
+		await noteGroup.save();
+
+		res.send(JSON.stringify(noteGroup));
+	} catch (err) {
+		res.status(400).send(err.message);
+	}
+}
+
+
+// async function addUserToGroup(req, res) {
+// 	try {
+// 		const userTokenCredentials = req.userTokenCredentials
+// 		const groupId = req.params.id
+// 		const { userEmail } = req.body
+
+// 		const noteGroup = await noteGroupModel.findById(groupId)
+
+// 		if(noteGroup.owner !== userTokenCredentials._id){
+// 			throw new Error("Action not authorized - you are not the owner of the group!")
+// 		}
+
+// 		const user = await userModel.findOne({
+// 			email: userEmail
+// 		})
+
+// 		if(!user){
+// 			throw new Error("User not found!")
+// 		}
+
+// 		noteGroup.permitedUsers.push(user._id)
+// 		await noteGroup.save()
+
+// 		res.send(
+// 			JSON.stringify(noteGroup)
+// 		);
+// 	} catch (err) {
+// 		res.status(400).send(err.message);
+// 	}
+// }
+
+async function deleteUserFromGroup(req, res) {
+	try {
+		const userTokenCredentials = req.userTokenCredentials;
+		const { userId } = req.body;
+		const noteGroupId = req.params.noteGroupId;
+
+		const noteGroup = await noteGroupModel.findById(noteGroupId);
+
+		if (!noteGroup) {
+			throw new Error("Note group not found!");
+		}
+
+		if (!noteGroup.owner.equals(userTokenCredentials._id)) {
+			throw new Error("Action not authorized - you are not the owner of the group!");
+		}
+
+		// Remove the specified user from permitedUsers array
+		noteGroup.permitedUsers.pull(userId);
+
+		// Save the updated noteGroup
+		await noteGroup.save();
+
+		res.send(JSON.stringify(noteGroup.permitedUsers));
+	} catch (err) {
+		res.status(400).send({ Message: err.message });
+	}
+}
+
+async function getMyPermitedNoteGroups(req, res) {
     try {
         const userTokenCredentials = req.userTokenCredentials;
-        console.log(userTokenCredentials);
-        const groupId = req.params.noteGroupId;
-        const { title, visibility } = req.body;
 
-        const noteGroup = await noteGroupModel.findById(groupId);
-        if (!noteGroup) {
-            throw new Error("Note group not found!");
-        }
-        console.log(noteGroup);
+        // Find note groups where the user is permitted but is not the owner
+        const noteGroups = await noteGroupModel.find({
+            owner: { $ne: userTokenCredentials._id }, // Owner is not the user
+            permitedUsers: userTokenCredentials._id, // User is in the permitedUsers array
+        });
 
-        // Convert the owner ID to a string for comparison
-        const ownerIdString = userTokenCredentials._id.toString();
-
-        if (noteGroup.owner.toString() !== ownerIdString) {
-            throw new Error("Action not authorized - you are not the owner of the group!");
+        if (!noteGroups) {
+            throw new Error("No note groups found for the user!");
         }
 
-        noteGroup.title = title;
-        noteGroup.visibility = visibility;
-        await noteGroup.save();
-
-        res.send(JSON.stringify(noteGroup));
+        res.send(JSON.stringify(noteGroups));
     } catch (err) {
-        res.status(400).send(err.message);
+        res.status(400).send({ Message: err.message });
     }
 }
 
 
-async function addUserToGroup(req, res) {
+async function removeMyselfFromGroup(req, res) {
 	try {
-		const userTokenCredentials = req.userTokenCredentials
-		const groupId = req.params.id
-		const { userEmail } = req.body
+		const userTokenCredentials = req.userTokenCredentials;
+		const noteGroupId = req.params.noteGroupId;
 
-		const noteGroup = await noteGroupModel.findById(groupId)
+		const noteGroup = await noteGroupModel.findById(noteGroupId);
 
-		if(noteGroup.owner !== userTokenCredentials._id){
-			throw new Error("Action not authorized - you are not the owner of the group!")
+		if (!noteGroup) {
+			throw new Error("Note group not found!");
 		}
 
-		const user = await userModel.findOne({
-			email: userEmail
-		})
-
-		if(!user){
-			throw new Error("User not found!")
+		if (noteGroup.owner.equals(userTokenCredentials._id)) {
+			throw new Error("Action not authorized - you ARE the owner of the group!");
 		}
 
-		noteGroup.permitedUsers.push(user._id)
-		await noteGroup.save()
+		// Remove the specified user from permitedUsers array
+		noteGroup.permitedUsers.pull(userTokenCredentials._id);
 
-		res.send(
-			JSON.stringify(noteGroup)
-		);
+		// Save the updated noteGroup
+		await noteGroup.save();
+
+		res.send(JSON.stringify(noteGroup.permitedUsers));
 	} catch (err) {
-		res.status(400).send(err.message);
-	}
-}
-
-async function deleteUserFromGroup(req, res) {
-	try {
-		const userTokenCredentials = req.userTokenCredentials
-
-		const { userEmail } = req.body
-		const noteId = req.params.id
-
-
-		//const noteGroup = await noteGroupModel.findByIdAndDelete(noteId)
-
-		//if(noteGroup.owner !== userTokenCredentials._id){
-		//	throw new Error("Action not authorized - you are not the owner of the group!")
-		//}
-
-
-
-
-		res.send(
-			JSON.stringify(notes)
-		);
-	} catch (err) {
-		res.status(400).send(err.message);
+		res.status(400).send({ Message: err.message });
 	}
 }
 
 async function getPermitedUsers(req, res) {
-		try {
+	try {
 		const userTokenCredentials = req.userTokenCredentials
 		const groupId = req.params.id
 
 		const noteGroup = await noteGroupModel.findById(groupId).populate("permitedUsers")
 
-		if(noteGroup.owner !== userTokenCredentials._id){
+		if (noteGroup.owner !== userTokenCredentials._id) {
 			throw new Error("Action not authorized - you are not the owner of the group!")
 		}
 
@@ -162,4 +213,4 @@ async function getPermitedUsers(req, res) {
 }
 
 
-module.exports = { createGroup, addUserToGroup, deleteUserFromGroup, getGroups, editGroup, getPermitedUsers };
+module.exports = { createGroup, deleteUserFromGroup, getGroups, editGroup, getPermitedUsers, removeMyselfFromGroup, getMyPermitedNoteGroups };

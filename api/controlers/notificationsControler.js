@@ -16,8 +16,14 @@ async function sendProjectInvite(req, res) {
             addressedTo: userId
         });
 
+
         if (existingNotification) {
             throw new Error("Notification for the same project and user already exists");
+        }
+
+        const noteGroup = await noteGroupModel.findById(projectId)
+        if (noteGroup.permitedUsers.includes(userId)) {
+            throw new Error("User already has permision")
         }
 
         // If no existing notification, create a new one
@@ -50,14 +56,15 @@ async function acceptProjectInvite(req, res) {
             throw new Error("Notifications with this id not found!")
         }
 
-        if (notification.addressedTo !== receiverCredentials._id) {
+        if (!notification.addressedTo.equals(receiverCredentials._id)) {
             throw new Error("Action not authorized!")
         }
 
         const noteGroup = await noteGroupModel.findById(notification.project)
         noteGroup.permitedUsers.push(user)
         await noteGroup.save()
-        
+        await notificationModel.findByIdAndDelete(notificationId)
+        res.send(JSON.stringify({ Message: "Succesfuly accepted invite" }))
     } catch (err) {
         res.status(400).send({ Message: err.message });
     }
@@ -71,7 +78,7 @@ async function rejectProjectInvite(req, res) {
 
         const user = await userModel.findById(receiverCredentials._id)
         const notification = await notificationModel.findById(notificationId)
-        
+
         if (!user) {
             throw new Error("User not found!")
         }
@@ -80,14 +87,14 @@ async function rejectProjectInvite(req, res) {
             throw new Error("Notifications with this id not found!")
         }
 
-        if (notification.addressedTo !== receiverCredentials._id) {
+        if (!notification.addressedTo.equals(receiverCredentials._id)) {
             throw new Error("Action not authorized!")
         }
 
         const result = await notificationModel.deleteOne(notification)
-
+        await notificationModel.findByIdAndDelete(notificationId)
         res.send(JSON.stringify(result))
-        
+
     } catch (err) {
         res.status(400).send({ Message: err.message });
     }

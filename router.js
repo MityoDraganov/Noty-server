@@ -39,7 +39,10 @@ Router.get("/noteGroups", authMiddlewear.tokenVerifier, noteGroupsControler.getG
 Router.post("/noteGroups/create", authMiddlewear.tokenVerifier, noteGroupsControler.createGroup)
 Router.post("/noteGroups/edit/:noteGroupId", authMiddlewear.tokenVerifier, noteGroupsControler.editGroup)
 
-Router.post("/noteGroups/addUser/:noteGroupId", authMiddlewear.tokenVerifier, noteGroupsControler.addUserToGroup)
+Router.get("/noteGroups/permitedNoteGroups", authMiddlewear.tokenVerifier, noteGroupsControler.getMyPermitedNoteGroups)
+Router.post("/noteGroups/removeMyAccess/:noteGroupId", authMiddlewear.tokenVerifier, noteGroupsControler.removeMyselfFromGroup)
+
+//Router.post("/noteGroups/addUser/:noteGroupId", authMiddlewear.tokenVerifier, noteGroupsControler.addUserToGroup)
 Router.post("/noteGroups/deleteUser/:noteGroupId", authMiddlewear.tokenVerifier, noteGroupsControler.deleteUserFromGroup)
 
 

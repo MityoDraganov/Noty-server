@@ -41,6 +41,7 @@ async function userCreationPost(req, res) {
         res.send(
             JSON.stringify({
                 'authorization-token': token,
+                _id: user._id
             })
         );
         res.end();
@@ -78,6 +79,7 @@ async function userLogin(req, res) {
         res.send(
             JSON.stringify({
                 'authorization-token': token,
+                _id: user._id
             })
         );
     } catch (e) {
@@ -92,7 +94,9 @@ async function getUserInfo(req, res) {
 
     const notifications = await notificationModel.find({
         addressedTo: user._id
-    }).populate()
+    }).populate("project")
+    .populate("sentBy")
+    .populate("addressedTo")
 
     res.send(JSON.stringify({
         username: user.username,

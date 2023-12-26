@@ -3,12 +3,6 @@ const noteModel = require("../models/note")
 const userModel = require("../models/user")
 
 
-//SERVICES
-const { findUserById } = require("../services/userServices");
-
-
-
-
 async function getNotes(req, res) {
 
 	try {
@@ -57,11 +51,11 @@ async function createNote(req, res) {
 
 
 
-		const notes = noteGroup.notes
+		
 
 
 		res.send(
-			JSON.stringify(notes)
+			JSON.stringify(note)
 		);
 	} catch (err) {
 		res.status(400).send(err.message);
