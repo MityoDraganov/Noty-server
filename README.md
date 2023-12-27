@@ -1,5 +1,7 @@
 # Noty-server
 A repository for the server of **Noty**
+<br>
+https://github.com/MityoDraganov/Noty
 
 # How to run the project:
 -Navigate to the source folder
